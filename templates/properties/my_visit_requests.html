@@ -1,0 +1,104 @@
+{% extends 'base/base.html' %}
+
+{% block title %}My Visit Requests - SafeEstate{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-900">My Visit Requests</h2>
+            <p class="text-gray-600 mt-1">Track your property visit requests</p>
+        </div>
+        
+        <div class="px-6 py-4">
+            {% if visit_requests %}
+                <div class="space-y-6">
+                    {% for request in visit_requests %}
+                        <div class="border border-gray-200 rounded-lg p-6">
+                            <div class="flex items-start space-x-4">
+                                <!-- Property Image -->
+                                <div class="flex-shrink-0">
+                                    {% if request.property.images.first %}
+                                        <img src="{{ request.property.images.first.image.url }}" alt="{{ request.property.title }}" class="w-20 h-20 object-cover rounded-lg">
+                                    {% else %}
+                                        <div class="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center">
+                                            <span class="text-gray-500 text-xs">No Image</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Request Details -->
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h3 class="text-lg font-semibold text-gray-900">
+                                                <a href="{% url 'properties:property_detail' request.property.pk %}" class="hover:text-blue-600">
+                                                    {{ request.property.title }}
+                                                </a>
+                                            </h3>
+                                            <p class="text-gray-600">{{ request.property.city }}, {{ request.property.get_state_display }}</p>
+                                            <p class="text-green-600 font-bold">₹{{ request.property.price|floatformat:0 }}</p>
+                                        </div>
+                                        <span class="px-3 py-1 text-sm rounded-full {% if request.status == 'pending' %}bg-yellow-100 text-yellow-800{% elif request.status == 'approved' %}bg-green-100 text-green-800{% elif request.status == 'declined' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                                            {{ request.get_status_display }}
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <span class="font-medium text-gray-700">Requested Date:</span>
+                                            <span class="ml-2 text-gray-600">{{ request.preferred_date }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="font-medium text-gray-700">Requested Time:</span>
+                                            <span class="ml-2 text-gray-600">{{ request.preferred_time }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="font-medium text-gray-700">Contact:</span>
+                                            <span class="ml-2 text-gray-600">{{ request.phone }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="font-medium text-gray-700">Request Date:</span>
+                                            <span class="ml-2 text-gray-600">{{ request.date_requested|date:"M d, Y" }}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if request.message %}
+                                        <div class="mt-4">
+                                            <span class="font-medium text-gray-700">Message:</span>
+                                            <p class="mt-1 text-gray-600">{{ request.message }}</p>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if request.seller_response %}
+                                        <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                                            <span class="font-medium text-gray-700">Seller Response:</span>
+                                            <p class="mt-1 text-gray-600">{{ request.seller_response }}</p>
+                                            {% if request.date_responded %}
+                                                <p class="text-sm text-gray-500 mt-2">Responded on {{ request.date_responded|date:"M d, Y" }}</p>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <div class="mx-auto h-24 w-24 text-gray-400 text-6xl">
+                        📅
+                    </div>
+                    <h3 class="mt-2 text-lg font-medium text-gray-900">No Visit Requests</h3>
+                    <p class="mt-1 text-gray-500">You haven't requested any property visits yet.</p>
+                    <div class="mt-6">
+                        <a href="{% url 'properties:property_list' %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                            Browse Properties
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

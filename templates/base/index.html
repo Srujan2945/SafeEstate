@@ -1,0 +1,273 @@
+{% extends 'base/base.html' %}
+
+{% block title %}SafeEstate - Your Trusted Indian Real Estate Platform{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="relative bg-gradient-to-r from-blue-600 to-purple-700 text-white">
+    <div class="absolute inset-0 bg-black opacity-30"></div>
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div class="text-center">
+            <h1 class="text-4xl md:text-6xl font-bold mb-6">
+                Find Your Dream Home in <span class="text-yellow-300">India</span>
+            </h1>
+            <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
+                Connect with verified sellers across India. Safe, secure, and transparent real estate transactions.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{% url 'properties:property_list' %}" class="bg-yellow-500 text-black px-8 py-4 rounded-lg text-lg font-semibold hover:bg-yellow-400 transition">
+                    Browse Properties
+                </a>
+                {% if not user.is_authenticated %}
+                <a href="{% url 'accounts:register' %}" class="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-600 transition">
+                    Join SafeEstate
+                </a>
+                {% else %}
+                    {% if user.role == 'seller' %}
+                    <a href="{% url 'properties:add_property' %}" class="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-600 transition">
+                        List Your Property
+                    </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Section -->
+<div class="bg-white shadow-lg -mt-12 relative z-10 max-w-6xl mx-auto rounded-lg">
+    <div class="px-6 py-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Quick Property Search</h2>
+        <form method="get" action="{% url 'properties:property_list' %}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
+                <select name="property_type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Any Type</option>
+                    <option value="plot">Plot</option>
+                    <option value="flat">Flat</option>
+                    <option value="house">House</option>
+                    <option value="commercial">Commercial</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                <input type="text" name="city" placeholder="Enter city name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Max Price</label>
+                <input type="number" name="max_price" placeholder="Enter max price" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                    Search Properties
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Statistics Section -->
+<div class="bg-gray-50 py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Why Choose SafeEstate?</h2>
+            <p class="text-lg text-gray-600">Trusted by thousands across India</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+            <div class="bg-white p-6 rounded-lg shadow">
+                <div class="text-4xl font-bold text-blue-600 mb-2">1000+</div>
+                <div class="text-gray-600">Verified Properties</div>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <div class="text-4xl font-bold text-green-600 mb-2">500+</div>
+                <div class="text-gray-600">Trusted Sellers</div>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <div class="text-4xl font-bold text-purple-600 mb-2">28</div>
+                <div class="text-gray-600">States Covered</div>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow">
+                <div class="text-4xl font-bold text-orange-600 mb-2">98%</div>
+                <div class="text-gray-600">Customer Satisfaction</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">How SafeEstate Works</h2>
+            <p class="text-lg text-gray-600">Simple, secure, and transparent process</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- For Buyers -->
+            <div class="text-center">
+                <div class="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-3xl">🔍</span>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Browse Properties</h3>
+                <p class="text-gray-600">Search through thousands of verified properties across India with advanced filters.</p>
+            </div>
+            
+            <!-- For Sellers -->
+            <div class="text-center">
+                <div class="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-3xl">📋</span>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">List Your Property</h3>
+                <p class="text-gray-600">Complete KYC verification and list your property with detailed information and photos.</p>
+            </div>
+            
+            <!-- Connection -->
+            <div class="text-center">
+                <div class="bg-purple-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-3xl">🤝</span>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Connect Safely</h3>
+                <p class="text-gray-600">Schedule visits, communicate securely, and complete transactions offline with confidence.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Property Types Section -->
+<div class="bg-gray-50 py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Property Types Available</h2>
+            <p class="text-lg text-gray-600">Find the perfect property for your needs</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <a href="{% url 'properties:property_list' %}?property_type=flat" class="bg-white rounded-lg shadow hover:shadow-lg transition p-6 text-center">
+                <div class="text-4xl mb-4">🏢</div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Apartments</h3>
+                <p class="text-gray-600 text-sm">Modern flats in prime locations</p>
+            </a>
+            <a href="{% url 'properties:property_list' %}?property_type=house" class="bg-white rounded-lg shadow hover:shadow-lg transition p-6 text-center">
+                <div class="text-4xl mb-4">🏠</div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Houses</h3>
+                <p class="text-gray-600 text-sm">Independent houses with gardens</p>
+            </a>
+            <a href="{% url 'properties:property_list' %}?property_type=plot" class="bg-white rounded-lg shadow hover:shadow-lg transition p-6 text-center">
+                <div class="text-4xl mb-4">🏞️</div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Plots</h3>
+                <p class="text-gray-600 text-sm">Residential and commercial plots</p>
+            </a>
+            <a href="{% url 'properties:property_list' %}?property_type=commercial" class="bg-white rounded-lg shadow hover:shadow-lg transition p-6 text-center">
+                <div class="text-4xl mb-4">🏪</div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Commercial</h3>
+                <p class="text-gray-600 text-sm">Offices, shops, and warehouses</p>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="bg-blue-600 text-white py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl font-bold mb-4">Ready to Find Your Dream Property?</h2>
+        <p class="text-xl mb-8">Join thousands of satisfied customers on SafeEstate</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            {% if not user.is_authenticated %}
+            <a href="{% url 'accounts:register' %}?role=buyer" class="bg-yellow-500 text-black px-8 py-4 rounded-lg text-lg font-semibold hover:bg-yellow-400 transition">
+                Register as Buyer
+            </a>
+            <a href="{% url 'accounts:register' %}?role=seller" class="bg-transparent border-2 border-white text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white hover:text-blue-600 transition">
+                Register as Seller
+            </a>
+            {% else %}
+            <a href="{% url 'properties:property_list' %}" class="bg-yellow-500 text-black px-8 py-4 rounded-lg text-lg font-semibold hover:bg-yellow-400 transition">
+                Explore Properties
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Featured Properties Section -->
+<div class="py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-3xl font-bold text-gray-900">Featured Properties</h2>
+            <a href="{% url 'properties:property_list' %}" class="text-blue-600 hover:text-blue-800 font-medium">
+                View All Properties →
+            </a>
+        </div>
+        
+        {% if featured_properties %}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {% for property in featured_properties %}
+                    <div class="bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                        <!-- Property Image -->
+                        <div class="h-48 bg-gray-200 relative">
+                            {% if property.images.first %}
+                                <img src="{{ property.images.first.image.url }}" 
+                                     alt="{{ property.title }}" 
+                                     class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                                     loading="lazy"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="flex items-center justify-center h-full bg-gray-100" style="display:none;">
+                                    <div class="text-center">
+                                        <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                        <span class="text-gray-500 text-sm">Image Error</span>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="flex items-center justify-center h-full bg-gray-100">
+                                    <div class="text-center">
+                                        <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                        <span class="text-gray-500 text-sm">No Image</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            <div class="absolute top-2 left-2">
+                                <span class="bg-blue-600 text-white px-2 py-1 rounded text-xs font-medium">
+                                    {{ property.get_property_type_display }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Property Details -->
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ property.title|truncatechars:40 }}</h3>
+                            <p class="text-gray-600 text-sm mb-2">{{ property.city }}, {{ property.get_state_display }}</p>
+                            <p class="text-2xl font-bold text-green-600 mb-2">₹{{ property.price|floatformat:0 }}</p>
+                            <p class="text-sm text-gray-600 mb-2">{{ property.area }} sq ft</p>
+                            {% if property.bedrooms %}
+                                <p class="text-sm text-gray-600">{{ property.bedrooms }} BHK</p>
+                            {% endif %}
+                            
+                            <div class="mt-4">
+                                <a href="{% url 'properties:property_detail' property.pk %}" class="block w-full text-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center text-gray-600">
+                <p class="mb-4">No featured properties available at the moment.</p>
+                <a href="{% url 'properties:property_list' %}" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                    Browse All Properties
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .gradient-bg {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Add Property - SafeEstate{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-900">List New Property</h2>
+            <p class="text-gray-600 mt-1">Fill in the details to list your property</p>
+        </div>
+        
+        <div class="px-6 py-4">
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label for="{{ property_form.title.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Property Title *
+                        </label>
+                        {{ property_form.title }}
+                        {% if property_form.title.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ property_form.title.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="{{ property_form.description.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Description *
+                        </label>
+                        {{ property_form.description }}
+                        {% if property_form.description.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ property_form.description.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ property_form.property_type.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Property Type *
+                        </label>
+                        {{ property_form.property_type }}
+                        {% if property_form.property_type.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ property_form.property_type.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ property_form.price.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Price (₹) *
+                        </label>
+                        {{ property_form.price }}
+                        {% if property_form.price.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ property_form.price.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ property_form.state.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            State *
+                        </label>
+                        {{ property_form.state }}
+                        {% if property_form.state.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ property_form.state.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ property_form.city.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            City *
+                        </label>
+                        {{ property_form.city }}
+                        {% if property_form.city.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ property_form.city.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ property_form.pincode.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Pincode *
+                        </label>
+                        {{ property_form.pincode }}
+                        {% if property_form.pincode.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ property_form.pincode.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ property_form.area.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Area (sq ft) *
+                        </label>
+                        {{ property_form.area }}
+                        {% if property_form.area.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ property_form.area.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ property_form.bedrooms.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Bedrooms
+                        </label>
+                        {{ property_form.bedrooms }}
+                        {% if property_form.bedrooms.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ property_form.bedrooms.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ property_form.bathrooms.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Bathrooms
+                        </label>
+                        {{ property_form.bathrooms }}
+                        {% if property_form.bathrooms.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ property_form.bathrooms.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="{{ property_form.address.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Full Address *
+                        </label>
+                        {{ property_form.address }}
+                        {% if property_form.address.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ property_form.address.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ property_form.latitude.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Latitude (Optional)
+                        </label>
+                        {{ property_form.latitude }}
+                        {% if property_form.latitude.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ property_form.latitude.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ property_form.longitude.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Longitude (Optional)
+                        </label>
+                        {{ property_form.longitude }}
+                        {% if property_form.longitude.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ property_form.longitude.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="{{ image_form.image.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Property Image
+                        </label>
+                        {{ image_form.image }}
+                        {% if image_form.image.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ image_form.image.errors.0 }}</p>
+                        {% endif %}
+                        <p class="text-sm text-gray-500 mt-1">Upload a main image for your property</p>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-4">
+                    <a href="{% url 'properties:property_list' %}" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                        List Property
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,215 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ property.title }} - SafeEstate{% endblock %}
+
+{% block content %}
+<!-- Image Modal -->
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden flex items-center justify-center" onclick="closeImageModal()">
+    <div class="max-w-4xl max-h-full p-4">
+        <img id="modalImage" src="" alt="Property Image" class="max-w-full max-h-full object-contain">
+        <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white hover:text-gray-300 text-3xl">&times;</button>
+    </div>
+</div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="lg:col-span-2">
+            <!-- Property Images -->
+            <div class="bg-white shadow rounded-lg overflow-hidden mb-6">
+                <div class="h-96 bg-gray-200">
+                    {% if property.images.first %}
+                        <img src="{{ property.images.first.image.url }}" 
+                             alt="{{ property.title }}" 
+                             class="w-full h-full object-cover cursor-pointer transition-transform duration-300 hover:scale-105"
+                             loading="lazy"
+                             onclick="openImageModal(this.src)"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="flex items-center justify-center h-full bg-gray-100" style="display:none;">
+                            <div class="text-center">
+                                <svg class="w-16 h-16 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <span class="text-gray-500 text-lg">Image Loading Error</span>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="flex items-center justify-center h-full bg-gray-100">
+                            <div class="text-center">
+                                <svg class="w-16 h-16 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <span class="text-gray-500 text-lg">No Image Available</span>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Property Details -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h1 class="text-3xl font-bold text-gray-900">{{ property.title }}</h1>
+                    <p class="text-gray-600 mt-2">{{ property.address }}</p>
+                    <p class="text-gray-600">{{ property.city }}, {{ property.get_state_display }} - {{ property.pincode }}</p>
+                </div>
+                
+                <div class="px-6 py-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600">₹{{ property.price|floatformat:0 }}</div>
+                            <div class="text-sm text-gray-500">Price</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-600">{{ property.area }}</div>
+                            <div class="text-sm text-gray-500">Sq Ft</div>
+                        </div>
+                        {% if property.bedrooms %}
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-purple-600">{{ property.bedrooms }}</div>
+                            <div class="text-sm text-gray-500">Bedrooms</div>
+                        </div>
+                        {% endif %}
+                        {% if property.bathrooms %}
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-orange-600">{{ property.bathrooms }}</div>
+                            <div class="text-sm text-gray-500">Bathrooms</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Description</h3>
+                        <p class="text-gray-700 leading-relaxed">{{ property.description }}</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="font-medium text-gray-700">Property Type:</span>
+                            <span class="ml-2 text-gray-600">{{ property.get_property_type_display }}</span>
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-700">Status:</span>
+                            <span class="ml-2 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                                {{ property.get_status_display }}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-700">Listed On:</span>
+                            <span class="ml-2 text-gray-600">{{ property.date_created|date:"F d, Y" }}</span>
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-700">Property ID:</span>
+                            <span class="ml-2 text-gray-600">SE{{ property.id|stringformat:"04d" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="lg:col-span-1">
+            <!-- Seller Info -->
+            <div class="bg-white shadow rounded-lg mb-6">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">Seller Information</h3>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="flex items-center mb-4">
+                        <div class="h-12 w-12 bg-gray-300 rounded-full flex items-center justify-center">
+                            <span class="text-gray-600 font-medium">{{ property.seller.username|slice:":1"|upper }}</span>
+                        </div>
+                        <div class="ml-4">
+                            <div class="font-medium text-gray-900">{{ property.seller.username }}</div>
+                            {% if property.seller.is_verified %}
+                                <div class="text-sm text-green-600">✓ Verified Seller</div>
+                            {% else %}
+                                <div class="text-sm text-gray-500">Not Verified</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    {% if user.is_authenticated %}
+                        {% if user != property.seller %}
+                            {% if user.role == 'buyer' %}
+                                <a href="{% url 'properties:request_visit' property.pk %}" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-center inline-block mb-3">
+                                    Request Visit
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'properties:edit_property' property.pk %}" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-center inline-block mb-3">
+                                Edit Property
+                            </a>
+                            <a href="{% url 'properties:manage_property_images' property.pk %}" class="w-full bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 text-center inline-block mb-3">
+                                📷 Manage Images
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-center inline-block mb-3">
+                            Login to Contact
+                        </a>
+                    {% endif %}
+                    
+                    <div class="text-sm text-gray-500">
+                        <p>Member since {{ property.seller.date_joined|date:"F Y" }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Visit Requests (for seller only) -->
+            {% if user == property.seller and visit_requests %}
+                <div class="bg-white shadow rounded-lg">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Visit Requests</h3>
+                    </div>
+                    <div class="px-6 py-4">
+                        {% for request in visit_requests %}
+                            <div class="border-b border-gray-200 pb-4 mb-4 last:border-b-0 last:mb-0">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <div class="font-medium text-gray-900">{{ request.buyer.username }}</div>
+                                        <div class="text-sm text-gray-600">{{ request.preferred_date }} at {{ request.preferred_time }}</div>
+                                        {% if request.message %}
+                                            <div class="text-sm text-gray-700 mt-1">{{ request.message }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <span class="px-2 py-1 text-xs rounded-full {% if request.status == 'pending' %}bg-yellow-100 text-yellow-800{% elif request.status == 'approved' %}bg-green-100 text-green-800{% elif request.status == 'declined' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                                        {{ request.get_status_display }}
+                                    </span>
+                                </div>
+                                {% if request.status == 'pending' %}
+                                    <div class="mt-2">
+                                        <a href="{% url 'properties:respond_visit_request' request.pk %}" class="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
+                                            Respond
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<script>
+function openImageModal(src) {
+    document.getElementById('modalImage').src = src;
+    document.getElementById('imageModal').classList.remove('hidden');
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').classList.add('hidden');
+}
+
+// Close modal when pressing Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeImageModal();
+    }
+});
+</script>
+{% endblock %}

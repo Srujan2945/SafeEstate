@@ -1,0 +1,811 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Manage Property Images - SafeEstate Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .image-preview {
+        transition: all 0.3s ease;
+    }
+    .image-preview:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .property-card {
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    .property-card.selected {
+        border-color: #3b82f6;
+        background-color: #eff6ff;
+    }
+    .bulk-actions {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: white;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .spinner {
+        border: 2px solid #f3f4f6;
+        border-top: 2px solid #3b82f6;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Admin Breadcrumb -->
+<div class="bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between py-4">
+            <nav class="flex items-center space-x-2 text-sm text-gray-600">
+                <a href="{% url 'admin_panel:dashboard' %}" class="hover:text-blue-600 transition-colors">
+                    <i class="fas fa-home mr-1"></i>
+                    Admin Dashboard
+                </a>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+                <span class="text-gray-900 font-medium">Property Image Management</span>
+            </nav>
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'admin_panel:dashboard' %}" class="text-gray-600 hover:text-blue-600 transition-colors">
+                    <i class="fas fa-arrow-left mr-1"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Property Image Management</h1>
+                    <p class="mt-2 text-gray-600">Manage and update property images across the platform</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="selectAll()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        Select All
+                    </button>
+                    <button onclick="deselectAll()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        Deselect All
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk Actions Bar -->
+        <div class="bulk-actions bg-white rounded-lg shadow-sm p-4 mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-600">
+                        <span id="selected-count">0</span> properties selected
+                    </span>
+                    <div class="h-4 border-l border-gray-300"></div>
+                    <div class="flex space-x-2">
+                        <button onclick="bulkAssignUnique()" class="bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 transition-colors text-sm">
+                            <i class="fas fa-random mr-1"></i>
+                            Assign Unique Images
+                        </button>
+                        <button onclick="bulkRemoveImages()" class="bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 transition-colors text-sm">
+                            <i class="fas fa-trash mr-1"></i>
+                            Remove Images
+                        </button>
+                        <button onclick="bulkAssignPlaceholder()" class="bg-gray-600 text-white px-3 py-2 rounded-md hover:bg-gray-700 transition-colors text-sm">
+                            <i class="fas fa-image mr-1"></i>
+                            Assign Placeholders
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <label for="bulk-action-file" class="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition-colors cursor-pointer text-sm">
+                        <i class="fas fa-upload mr-1"></i>
+                        Upload Images
+                    </label>
+                    <input type="file" id="bulk-action-file" multiple accept="image/*" class="hidden">
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-home text-blue-600 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Properties</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ total_properties }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-images text-green-600 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">With Images</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ properties_with_images }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Without Images</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ properties_without_images }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-photo-video text-purple-600 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Images</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ total_images }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+            <div class="flex flex-wrap items-center gap-4">
+                <div class="flex items-center space-x-2">
+                    <label class="text-sm font-medium text-gray-700">Filter:</label>
+                    <select id="image-filter" onchange="filterProperties()" class="border border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="all">All Properties</option>
+                        <option value="with-images">With Images</option>
+                        <option value="without-images">Without Images</option>
+                        <option value="multiple-images">Multiple Images</option>
+                    </select>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <label class="text-sm font-medium text-gray-700">Sort:</label>
+                    <select id="sort-order" onchange="sortProperties()" class="border border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="title">Title A-Z</option>
+                        <option value="price-high">Price High-Low</option>
+                        <option value="price-low">Price Low-High</option>
+                    </select>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="search-input" placeholder="Search properties..." 
+                           class="border border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64"
+                           onkeyup="searchProperties()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Properties Grid -->
+        <div id="properties-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for property in properties %}
+            <div class="property-card bg-white rounded-lg shadow-sm overflow-hidden" data-property-id="{{ property.id }}" 
+                 data-title="{{ property.title|lower }}" data-price="{{ property.price }}" data-date="{{ property.date_created|date:'Y-m-d' }}"
+                 data-has-images="{% if property.images.exists %}true{% else %}false{% endif %}" 
+                 data-image-count="{{ property.images.count }}">
+                
+                <!-- Property Header -->
+                <div class="p-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" class="property-checkbox rounded border-gray-300" 
+                                   value="{{ property.id }}" onchange="updateSelectedCount()">
+                            <div>
+                                <h3 class="font-semibold text-gray-900 text-sm">{{ property.title }}</h3>
+                                <p class="text-xs text-gray-600">${{ property.price|floatformat:0 }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            {% if property.images.exists %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    {{ property.images.count }} image{{ property.images.count|pluralize }}
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    No images
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Images Section -->
+                <div class="p-4">
+                    {% if property.images.exists %}
+                        <div class="grid gap-2 {% if property.images.count == 1 %}grid-cols-1{% elif property.images.count == 2 %}grid-cols-2{% else %}grid-cols-2{% endif %}">
+                            {% for image in property.images.all|slice:":4" %}
+                                <div class="relative group">
+                                    <img src="{{ image.image.url }}" alt="Property Image" 
+                                         class="image-preview w-full h-20 object-cover rounded-md">
+                                    <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+                                        <button class="remove-image-btn text-white hover:text-red-300 transition-colors" 
+                                                data-image-id="{{ image.id }}" data-property-id="{{ property.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        <button class="view-image-btn text-white hover:text-blue-300 transition-colors ml-3" 
+                                                data-image-url="{{ image.image.url }}">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            {% if property.images.count > 4 %}
+                                <div class="w-full h-20 bg-gray-100 rounded-md flex items-center justify-center text-gray-600 text-sm">
+                                    +{{ property.images.count|add:"-4" }} more
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="w-full h-32 bg-gray-100 rounded-md flex items-center justify-center text-gray-500">
+                            <div class="text-center">
+                                <i class="fas fa-image text-2xl mb-2"></i>
+                                <p class="text-sm">No images</p>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Individual Actions -->
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <label for="file-{{ property.id }}" class="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition-colors cursor-pointer text-xs">
+                            <i class="fas fa-upload mr-1"></i>
+                            Upload
+                        </label>
+                        <input type="file" id="file-{{ property.id }}" multiple accept="image/*" class="hidden" 
+                               data-property-id="{{ property.id }}">
+                        
+                        <button class="assign-random-btn bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 transition-colors text-xs" 
+                                data-property-id="{{ property.id }}">
+                            <i class="fas fa-random mr-1"></i>
+                            Random
+                        </button>
+                        
+                        {% if property.images.exists %}
+                        <button class="remove-all-images-btn bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 transition-colors text-xs" 
+                                data-property-id="{{ property.id }}">
+                            <i class="fas fa-trash mr-1"></i>
+                            Clear
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="mt-8 flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+                Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} properties
+            </div>
+            <div class="flex space-x-2">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">First</a>
+                    <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Previous</a>
+                {% endif %}
+                
+                <span class="px-3 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+                
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">Last</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Image Viewer Modal -->
+<div id="image-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 flex items-center justify-center">
+    <div class="max-w-4xl max-h-full p-4">
+        <div class="relative">
+            <img id="modal-image" src="" alt="" class="max-w-full max-h-screen object-contain rounded-lg">
+            <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white hover:text-gray-300 text-2xl">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
+        <div class="spinner"></div>
+        <span class="text-gray-700">Processing...</span>
+    </div>
+</div>
+
+<script>
+// Global variables
+let selectedProperties = new Set();
+let isUploading = false; // Flag to prevent duplicate uploads
+
+// Selection functions
+function selectAll() {
+    document.querySelectorAll('.property-checkbox:not([style*="display: none"])').forEach(checkbox => {
+        if (!checkbox.closest('.property-card').style.display.includes('none')) {
+            checkbox.checked = true;
+            selectedProperties.add(checkbox.value);
+        }
+    });
+    updateSelectedCount();
+    updatePropertyCards();
+}
+
+function deselectAll() {
+    document.querySelectorAll('.property-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    selectedProperties.clear();
+    updateSelectedCount();
+    updatePropertyCards();
+}
+
+function updateSelectedCount() {
+    const checkboxes = document.querySelectorAll('.property-checkbox:checked');
+    selectedProperties = new Set(Array.from(checkboxes).map(cb => cb.value));
+    document.getElementById('selected-count').textContent = selectedProperties.size;
+    updatePropertyCards();
+}
+
+function updatePropertyCards() {
+    document.querySelectorAll('.property-card').forEach(card => {
+        const propertyId = card.dataset.propertyId;
+        if (selectedProperties.has(propertyId)) {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
+        }
+    });
+}
+
+// Filter and search functions
+function filterProperties() {
+    const filter = document.getElementById('image-filter').value;
+    const cards = document.querySelectorAll('.property-card');
+    
+    cards.forEach(card => {
+        let show = true;
+        const hasImages = card.dataset.hasImages === 'true';
+        const imageCount = parseInt(card.dataset.imageCount);
+        
+        switch(filter) {
+            case 'with-images':
+                show = hasImages;
+                break;
+            case 'without-images':
+                show = !hasImages;
+                break;
+            case 'multiple-images':
+                show = imageCount > 1;
+                break;
+            default:
+                show = true;
+        }
+        
+        card.style.display = show ? 'block' : 'none';
+    });
+}
+
+function sortProperties() {
+    const sortOrder = document.getElementById('sort-order').value;
+    const container = document.getElementById('properties-container');
+    const cards = Array.from(container.children);
+    
+    cards.sort((a, b) => {
+        switch(sortOrder) {
+            case 'newest':
+                return new Date(b.dataset.date) - new Date(a.dataset.date);
+            case 'oldest':
+                return new Date(a.dataset.date) - new Date(b.dataset.date);
+            case 'title':
+                return a.dataset.title.localeCompare(b.dataset.title);
+            case 'price-high':
+                return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
+            case 'price-low':
+                return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+            default:
+                return 0;
+        }
+    });
+    
+    cards.forEach(card => container.appendChild(card));
+}
+
+function searchProperties() {
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    const cards = document.querySelectorAll('.property-card');
+    
+    cards.forEach(card => {
+        const title = card.dataset.title;
+        const show = title.includes(searchTerm);
+        card.style.display = show ? 'block' : 'none';
+    });
+}
+
+// Image management functions
+function viewImage(imageUrl) {
+    document.getElementById('modal-image').src = imageUrl;
+    document.getElementById('image-modal').classList.remove('hidden');
+}
+
+function closeImageModal() {
+    document.getElementById('image-modal').classList.add('hidden');
+}
+
+function showLoading() {
+    document.getElementById('loading-overlay').classList.remove('hidden');
+}
+
+function hideLoading() {
+    document.getElementById('loading-overlay').classList.add('hidden');
+}
+
+// Individual property actions
+function uploadImages(propertyId, event) {
+    const files = event.target.files;
+    if (files.length === 0 || isUploading) return;
+    
+    isUploading = true;
+    const formData = new FormData();
+    formData.append('action', 'upload');
+    formData.append('property_ids', propertyId);
+    
+    for (let file of files) {
+        formData.append('images', file);
+    }
+    
+    showLoading();
+    fetch('{% url "admin_panel:bulk_assign_images" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        isUploading = false;
+        if (data.success) {
+            alert('Images uploaded successfully!');
+            // Clear the file input
+            event.target.value = '';
+            location.reload();
+        } else {
+            alert('Error uploading images: ' + data.message);
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        isUploading = false;
+        alert('Error uploading images');
+        console.error(error);
+    });
+}
+
+function assignRandomImage(propertyId) {
+    showLoading();
+    fetch('{% url "admin_panel:bulk_assign_images" %}', {
+        method: 'POST',
+        body: JSON.stringify({
+            action: 'assign_unique',
+            property_ids: [propertyId]
+        }),
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error assigning image: ' + data.message);
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        alert('Error assigning image');
+        console.error(error);
+    });
+}
+
+function removeImage(imageId, propertyId) {
+    if (!confirm('Are you sure you want to remove this image?')) return;
+    
+    showLoading();
+    fetch('{% url "admin_panel:bulk_assign_images" %}', {
+        method: 'POST',
+        body: JSON.stringify({
+            action: 'remove_specific',
+            image_id: imageId
+        }),
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error removing image: ' + data.message);
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        alert('Error removing image');
+        console.error(error);
+    });
+}
+
+function removeAllImages(propertyId) {
+    if (!confirm('Are you sure you want to remove all images from this property?')) return;
+    
+    showLoading();
+    fetch('{% url "admin_panel:bulk_assign_images" %}', {
+        method: 'POST',
+        body: JSON.stringify({
+            action: 'remove_all',
+            property_ids: [propertyId]
+        }),
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error removing images: ' + data.message);
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        alert('Error removing images');
+        console.error(error);
+    });
+}
+
+// Bulk actions
+function bulkAssignUnique() {
+    if (selectedProperties.size === 0) {
+        alert('Please select at least one property');
+        return;
+    }
+    
+    if (!confirm(`Assign unique images to ${selectedProperties.size} selected properties?`)) return;
+    
+    showLoading();
+    fetch('{% url "admin_panel:bulk_assign_images" %}', {
+        method: 'POST',
+        body: JSON.stringify({
+            action: 'assign_unique',
+            property_ids: Array.from(selectedProperties)
+        }),
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.success) {
+            alert(`Successfully assigned images to ${data.updated_count} properties`);
+            location.reload();
+        } else {
+            alert('Error assigning images: ' + data.message);
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        alert('Error assigning images');
+        console.error(error);
+    });
+}
+
+function bulkRemoveImages() {
+    if (selectedProperties.size === 0) {
+        alert('Please select at least one property');
+        return;
+    }
+    
+    if (!confirm(`Remove all images from ${selectedProperties.size} selected properties?`)) return;
+    
+    showLoading();
+    fetch('{% url "admin_panel:bulk_assign_images" %}', {
+        method: 'POST',
+        body: JSON.stringify({
+            action: 'remove_all',
+            property_ids: Array.from(selectedProperties)
+        }),
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.success) {
+            alert(`Successfully removed images from ${data.updated_count} properties`);
+            location.reload();
+        } else {
+            alert('Error removing images: ' + data.message);
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        alert('Error removing images');
+        console.error(error);
+    });
+}
+
+function bulkAssignPlaceholder() {
+    if (selectedProperties.size === 0) {
+        alert('Please select at least one property');
+        return;
+    }
+    
+    if (!confirm(`Assign placeholder images to ${selectedProperties.size} selected properties?`)) return;
+    
+    showLoading();
+    fetch('{% url "admin_panel:bulk_assign_images" %}', {
+        method: 'POST',
+        body: JSON.stringify({
+            action: 'assign_placeholder',
+            property_ids: Array.from(selectedProperties)
+        }),
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        if (data.success) {
+            alert(`Successfully assigned placeholder images to ${data.updated_count} properties`);
+            location.reload();
+        } else {
+            alert('Error assigning placeholder images: ' + data.message);
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        alert('Error assigning placeholder images');
+        console.error(error);
+    });
+}
+
+function handleBulkUpload(event) {
+    const files = event.target.files;
+    if (files.length === 0 || selectedProperties.size === 0 || isUploading) {
+        if (isUploading) {
+            alert('Upload already in progress, please wait...');
+        } else {
+            alert('Please select properties and files');
+        }
+        return;
+    }
+    
+    isUploading = true;
+    const formData = new FormData();
+    formData.append('action', 'upload');
+    formData.append('property_ids', Array.from(selectedProperties).join(','));
+    
+    for (let file of files) {
+        formData.append('images', file);
+    }
+    
+    showLoading();
+    fetch('{% url "admin_panel:bulk_assign_images" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        isUploading = false;
+        if (data.success) {
+            alert(`Successfully uploaded images to ${data.updated_count} properties`);
+            // Clear the file input
+            event.target.value = '';
+            location.reload();
+        } else {
+            alert('Error uploading images: ' + data.message);
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        isUploading = false;
+        alert('Error uploading images');
+        console.error(error);
+    });
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    updateSelectedCount();
+    
+    // Event delegation for dynamic buttons
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-image-btn')) {
+            const btn = e.target.closest('.remove-image-btn');
+            const imageId = btn.dataset.imageId;
+            const propertyId = btn.dataset.propertyId;
+            removeImage(imageId, propertyId);
+        }
+        
+        if (e.target.closest('.view-image-btn')) {
+            const btn = e.target.closest('.view-image-btn');
+            const imageUrl = btn.dataset.imageUrl;
+            viewImage(imageUrl);
+        }
+        
+        if (e.target.closest('.assign-random-btn')) {
+            const btn = e.target.closest('.assign-random-btn');
+            const propertyId = btn.dataset.propertyId;
+            assignRandomImage(propertyId);
+        }
+        
+        if (e.target.closest('.remove-all-images-btn')) {
+            const btn = e.target.closest('.remove-all-images-btn');
+            const propertyId = btn.dataset.propertyId;
+            removeAllImages(propertyId);
+        }
+    });
+    
+    // File upload change handlers
+    document.addEventListener('change', function(e) {
+        // Handle individual property uploads
+        if (e.target.matches('input[type="file"][data-property-id]')) {
+            const propertyId = e.target.dataset.propertyId;
+            uploadImages(propertyId, e);
+        }
+        // Handle bulk uploads
+        else if (e.target.id === 'bulk-action-file') {
+            handleBulkUpload(e);
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,264 @@
+{% extends 'base/base.html' %}
+
+{% block title %}KYC Details - {{ kyc.seller.username }} - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <!-- Header -->
+    <div class="bg-white shadow-lg border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div class="flex items-center">
+                    <a href="{% url 'admin_panel:kyc_verification' %}" class="text-blue-600 hover:text-blue-800 mr-4">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                    </a>
+                    <h1 class="text-2xl font-bold text-gray-900">KYC Review - {{ kyc.seller.username }}</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    {% if kyc.status == 'approved' %}
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">✓ Approved</span>
+                    {% elif kyc.status == 'rejected' %}
+                        <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">✗ Rejected</span>
+                    {% else %}
+                        <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">⏳ Pending Review</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Seller Information -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">👤 Seller Information</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <div class="w-16 h-16 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                                {{ kyc.seller.username|first|upper }}
+                            </div>
+                            <div class="ml-4">
+                                <p class="font-medium text-gray-900">{{ kyc.seller.get_full_name|default:kyc.seller.username }}</p>
+                                <p class="text-sm text-gray-600">{{ kyc.seller.email }}</p>
+                            </div>
+                        </div>
+                        <div class="border-t pt-4">
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <p class="font-medium text-gray-600">Role</p>
+                                    <p class="text-gray-900">{{ kyc.seller.get_role_display }}</p>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-600">Joined</p>
+                                    <p class="text-gray-900">{{ kyc.seller.date_joined|date:"M d, Y" }}</p>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-600">Phone</p>
+                                    <p class="text-gray-900">{{ kyc.seller.phone|default:"Not provided" }}</p>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-600">Status</p>
+                                    <p class="text-gray-900">
+                                        {% if kyc.seller.is_verified %}✓ Verified{% else %}⚠ Unverified{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KYC Status -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mt-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">📊 KYC Status</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Submitted</p>
+                            <p class="text-gray-900">{{ kyc.date_submitted|date:"M d, Y H:i" }}</p>
+                        </div>
+                        {% if kyc.date_verified %}
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Verified</p>
+                            <p class="text-gray-900">{{ kyc.date_verified|date:"M d, Y H:i" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Verified by</p>
+                            <p class="text-gray-900">{{ kyc.verified_by.username }}</p>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Completion</p>
+                            <p class="text-gray-900">
+                                {% if kyc.is_complete %}
+                                    <span class="text-green-600">✓ All documents uploaded</span>
+                                {% else %}
+                                    <span class="text-red-600">⚠ Missing required documents</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents Review -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-6">📄 Document Review</h3>
+                    
+                    <!-- Required Documents -->
+                    <div class="mb-8">
+                        <h4 class="text-md font-semibold text-red-700 mb-4 flex items-center">
+                            <span class="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center mr-2 text-sm">!</span>
+                            Required Documents
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {% if kyc.pan_card %}
+                            <div class="border-2 border-red-200 rounded-lg p-4">
+                                <h5 class="font-medium text-gray-900 mb-2">PAN Card</h5>
+                                <img src="{{ kyc.pan_card.url }}" alt="PAN Card" class="w-full h-48 object-cover rounded-lg border">
+                                <a href="{{ kyc.pan_card.url }}" target="_blank" class="inline-block mt-2 text-blue-600 hover:text-blue-800 text-sm">View Full Size →</a>
+                            </div>
+                            {% else %}
+                            <div class="border-2 border-red-200 rounded-lg p-4 bg-red-50">
+                                <h5 class="font-medium text-red-700 mb-2">PAN Card</h5>
+                                <p class="text-red-600 text-sm">❌ Not uploaded</p>
+                            </div>
+                            {% endif %}
+
+                            {% if kyc.aadhaar_card %}
+                            <div class="border-2 border-red-200 rounded-lg p-4">
+                                <h5 class="font-medium text-gray-900 mb-2">Aadhaar Card</h5>
+                                <img src="{{ kyc.aadhaar_card.url }}" alt="Aadhaar Card" class="w-full h-48 object-cover rounded-lg border">
+                                <a href="{{ kyc.aadhaar_card.url }}" target="_blank" class="inline-block mt-2 text-blue-600 hover:text-blue-800 text-sm">View Full Size →</a>
+                            </div>
+                            {% else %}
+                            <div class="border-2 border-red-200 rounded-lg p-4 bg-red-50">
+                                <h5 class="font-medium text-red-700 mb-2">Aadhaar Card</h5>
+                                <p class="text-red-600 text-sm">❌ Not uploaded</p>
+                            </div>
+                            {% endif %}
+
+                            {% if kyc.ownership_proof %}
+                            <div class="border-2 border-red-200 rounded-lg p-4">
+                                <h5 class="font-medium text-gray-900 mb-2">Ownership Proof</h5>
+                                <img src="{{ kyc.ownership_proof.url }}" alt="Ownership Proof" class="w-full h-48 object-cover rounded-lg border">
+                                <a href="{{ kyc.ownership_proof.url }}" target="_blank" class="inline-block mt-2 text-blue-600 hover:text-blue-800 text-sm">View Full Size →</a>
+                            </div>
+                            {% else %}
+                            <div class="border-2 border-red-200 rounded-lg p-4 bg-red-50">
+                                <h5 class="font-medium text-red-700 mb-2">Ownership Proof</h5>
+                                <p class="text-red-600 text-sm">❌ Not uploaded</p>
+                            </div>
+                            {% endif %}
+
+                            {% if kyc.revenue_records %}
+                            <div class="border-2 border-red-200 rounded-lg p-4">
+                                <h5 class="font-medium text-gray-900 mb-2">Revenue Records</h5>
+                                <img src="{{ kyc.revenue_records.url }}" alt="Revenue Records" class="w-full h-48 object-cover rounded-lg border">
+                                <a href="{{ kyc.revenue_records.url }}" target="_blank" class="inline-block mt-2 text-blue-600 hover:text-blue-800 text-sm">View Full Size →</a>
+                            </div>
+                            {% else %}
+                            <div class="border-2 border-red-200 rounded-lg p-4 bg-red-50">
+                                <h5 class="font-medium text-red-700 mb-2">Revenue Records</h5>
+                                <p class="text-red-600 text-sm">❌ Not uploaded</p>
+                            </div>
+                            {% endif %}
+
+                            {% if kyc.tax_receipt %}
+                            <div class="border-2 border-red-200 rounded-lg p-4">
+                                <h5 class="font-medium text-gray-900 mb-2">Tax Receipt</h5>
+                                <img src="{{ kyc.tax_receipt.url }}" alt="Tax Receipt" class="w-full h-48 object-cover rounded-lg border">
+                                <a href="{{ kyc.tax_receipt.url }}" target="_blank" class="inline-block mt-2 text-blue-600 hover:text-blue-800 text-sm">View Full Size →</a>
+                            </div>
+                            {% else %}
+                            <div class="border-2 border-red-200 rounded-lg p-4 bg-red-50">
+                                <h5 class="font-medium text-red-700 mb-2">Tax Receipt</h5>
+                                <p class="text-red-600 text-sm">❌ Not uploaded</p>
+                            </div>
+                            {% endif %}
+
+                            {% if kyc.encumbrance_certificate %}
+                            <div class="border-2 border-red-200 rounded-lg p-4 md:col-span-2">
+                                <h5 class="font-medium text-gray-900 mb-2">Encumbrance Certificate</h5>
+                                <img src="{{ kyc.encumbrance_certificate.url }}" alt="Encumbrance Certificate" class="w-full h-48 object-cover rounded-lg border">
+                                <a href="{{ kyc.encumbrance_certificate.url }}" target="_blank" class="inline-block mt-2 text-blue-600 hover:text-blue-800 text-sm">View Full Size →</a>
+                            </div>
+                            {% else %}
+                            <div class="border-2 border-red-200 rounded-lg p-4 bg-red-50 md:col-span-2">
+                                <h5 class="font-medium text-red-700 mb-2">Encumbrance Certificate</h5>
+                                <p class="text-red-600 text-sm">❌ Not uploaded</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Optional Documents -->
+                    {% if kyc.voter_id or kyc.additional_documents %}
+                    <div class="mb-8">
+                        <h4 class="text-md font-semibold text-blue-700 mb-4 flex items-center">
+                            <span class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center mr-2 text-sm">+</span>
+                            Additional Documents
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {% if kyc.voter_id %}
+                            <div class="border-2 border-blue-200 rounded-lg p-4">
+                                <h5 class="font-medium text-gray-900 mb-2">Voter ID</h5>
+                                <img src="{{ kyc.voter_id.url }}" alt="Voter ID" class="w-full h-32 object-cover rounded-lg border">
+                                <a href="{{ kyc.voter_id.url }}" target="_blank" class="inline-block mt-2 text-blue-600 hover:text-blue-800 text-sm">View →</a>
+                            </div>
+                            {% endif %}
+
+                            {% if kyc.additional_documents %}
+                            <div class="border-2 border-blue-200 rounded-lg p-4">
+                                <h5 class="font-medium text-gray-900 mb-2">Additional Documents</h5>
+                                <img src="{{ kyc.additional_documents.url }}" alt="Additional Documents" class="w-full h-32 object-cover rounded-lg border">
+                                <a href="{{ kyc.additional_documents.url }}" target="_blank" class="inline-block mt-2 text-blue-600 hover:text-blue-800 text-sm">View →</a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Admin Actions -->
+                    {% if kyc.status == 'pending' %}
+                    <div class="border-t pt-6">
+                        <h4 class="text-md font-semibold text-gray-900 mb-4">⚖️ Admin Decision</h4>
+                        <form method="post" class="space-y-4">
+                            {% csrf_token %}
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Remarks (Optional)</label>
+                                <textarea name="remarks" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Add remarks for approval/rejection...">{{ kyc.remarks }}</textarea>
+                            </div>
+                            <div class="flex space-x-4">
+                                <button type="submit" name="action" value="approved" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium">
+                                    ✓ Approve KYC
+                                </button>
+                                <button type="submit" name="action" value="rejected" class="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors duration-200 font-medium">
+                                    ✗ Reject KYC
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    {% else %}
+                    <div class="border-t pt-6">
+                        <h4 class="text-md font-semibold text-gray-900 mb-4">📝 Admin Remarks</h4>
+                        {% if kyc.remarks %}
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <p class="text-gray-700">{{ kyc.remarks }}</p>
+                                <p class="text-sm text-gray-500 mt-2">
+                                    - {{ kyc.verified_by.username }} on {{ kyc.date_verified|date:"M d, Y H:i" }}
+                                </p>
+                            </div>
+                        {% else %}
+                            <p class="text-gray-500 italic">No remarks provided</p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
